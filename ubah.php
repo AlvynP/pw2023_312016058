@@ -51,7 +51,7 @@ if (isset($_POST['ubah'])) {
 
 <body>
   <h3>Ubah Data</h3>
-  <form class="form-inline" action="" method="POST">
+  <form class="form-inline" action="" method="POST" enctype="multipart/form-data">
     <input type="hidden" name="id" value="<?= $d['id']; ?>">
     <ul>
       <li>
@@ -76,9 +76,11 @@ if (isset($_POST['ubah'])) {
       </li>
       <br>
       <li>
+        <input type="hidden" name="gambar_lama" value="<?= $d['gambar']; ?>">
+        <img src="img/<?= $d['gambar']; ?>" alt="" width="120" style="display: block;" class="img-preview">
         <label>
           Gambar :
-          <input type="text" required name="gambar" value="<?= $d['gambar']; ?>">
+          <input type="file" name="gambar" class="gambar" onchange="previewImage()">
         </label>
       </li>
       <br>
@@ -102,6 +104,7 @@ if (isset($_POST['ubah'])) {
     <input type="text">
     <button type="submit">Tambah Data!</button>
   </form> -->
+  <script src="js/script.js"></script>
 </body>
 
 </html>

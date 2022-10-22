@@ -24,6 +24,65 @@ function query($query)
   return $rows;
 }
 
+
+function upload()
+{
+  $nama_file = $_FILES['gambar']['name'];
+  $tipe_file = $_FILES['gambar']['type'];
+  $ukuran_file = $_FILES['gambar']['size'];
+  $error = $_FILES['gambar']['error'];
+  $tmp_file = $_FILES['gambar']['tmp_name'];
+
+  // ketika tidak ada gambar yang dipilih
+  if ($error == 4) {
+    // echo "<script>
+    // alert('pilih gambar terlebih dahulu!');
+    // </script>";
+    // return false;
+    return 'default.png';
+  }
+
+  // cek ekstensi file
+  $daftar_gambar = ['jpg', 'jpeg', 'png'];
+  $ekstensi_file = explode('.', $nama_file);
+  $ekstensi_file = strtolower(end($ekstensi_file));
+  if (!in_array($ekstensi_file, $daftar_gambar)) {
+    echo "<script>
+    alert('yang anda pilih bukan gambar!');
+    </script>";
+    return false;
+  }
+
+  // cek type file
+  if ($tipe_file != 'image/jpeg' && $tipe_file != 'image/png') {
+    echo "<script>
+    alert('yang anda pilih bukan gambar!');
+    </script>";
+    return false;
+  }
+
+  // cek ukuran file
+  // maksimal 5mb == 5000000
+  if ($ukuran_file > 5000000) {
+    echo "<script>
+    alert('ukuran gambar terlalu besar!');
+    </script>";
+    return false;
+  }
+
+  // lolos pengecekan file
+  // siap upload
+  // memecah nama file menjadi nama yg acak
+  $nama_file_baru = uniqid();
+  $nama_file_baru .= '.';
+  $nama_file_baru .= $ekstensi_file;
+  move_uploaded_file($tmp_file, 'img/' . $nama_file_baru);
+
+  return $nama_file_baru;
+}
+
+
+
 function tambah($data)
 {
   $conn = conn();
@@ -31,7 +90,13 @@ function tambah($data)
   $nama = htmlspecialchars($data['nama']);
   $email = htmlspecialchars($data['email']);
   $hp = htmlspecialchars($data['hp']);
-  $gambar = htmlspecialchars($data['gambar']);
+  // $gambar = htmlspecialchars($data['gambar']);
+
+  // upload gambar
+  $gambar = upload();
+  if (!$gambar) {
+    return false;
+  }
 
   $query = "INSERT INTO data VALUES 
   (null, '$gambar', '$nama', '$email', '$hp')";
@@ -47,6 +112,13 @@ function tambah($data)
 function hapus($id)
 {
   $conn = conn();
+
+  // menghapus gambar di server
+  $dt = query("SELECT * FROM data WHERE id = $id");
+  if ($dt['gambar'] != 'default.png') {
+    unlink('img/' . $dt['gambar']);
+  }
+
   mysqli_query($conn, "DELETE FROM data WHERE id = $id") or die(mysqli_error($conn));
   return mysqli_affected_rows($conn);
 }
@@ -60,7 +132,16 @@ function ubah($data)
   $nama = htmlspecialchars($data['nama']);
   $email = htmlspecialchars($data['email']);
   $hp = htmlspecialchars($data['hp']);
-  $gambar = htmlspecialchars($data['gambar']);
+  $gambar_lama = htmlspecialchars($data['gambar_lama']);
+
+  $gambar = upload();
+  if (!$gambar) {
+    return false;
+  }
+
+  if ($gambar == 'default.png') {
+    $gambar = $gambar_lama;
+  }
 
   $query = "UPDATE data SET nama = '$nama', email = '$email', hp = '$hp', gambar = '$gambar' WHERE id = $id";
 
@@ -127,7 +208,7 @@ function register($data)
   if (empty($username) || empty($password1) || empty($password2)) {
     echo "<script>
                 alert('username / password tida boleh kosong'); document.location.href = 'registrasi.php';
-            </script>";
+            </scrip>";
     return false;
   }
 
